@@ -88,7 +88,7 @@ __curl() {
     local BODY="$(tail -n "+$(($(wc -l <<< "$HEADERS")+2))" <<< "$RESPONSE")"
 
     local STATUS_CODE="$(sed -ne '1{s#^HTTP/[0-9.]* \([0-9]*\)\( .*\)\?$#\1#p}' <<< "$HEADERS_FINAL")"
-    if [ -z "$STATUS_CODE" ] || (( $STATUS_CODE < 200 )) || (( $STATUS_CODE >= 300 )); then
+    if [ -z "$STATUS_CODE" ] || (( STATUS_CODE < 200 )) || (( STATUS_CODE >= 300 )); then
         [ $RETURN_CODE -ne 0 ] || RETURN_CODE=22
 
         local STATUS_STRING="$(sed -ne '1{s#^HTTP/[0-9.]* \(.*\)$#\1#p}' <<< "$HEADERS_FINAL")"
@@ -125,7 +125,7 @@ gh_api() {
 
     # check rate limit
     if [ "$ENDPOINT" != "rate_limit" ]; then
-        if (( $RATELIMIT_REMAINING == 0 )); then
+        if (( RATELIMIT_REMAINING == 0 )); then
             echo "curl: (67) GitHub API rate limit exceeded: You must wait till $RATELIMIT_RESET" >&2
             return 67
         fi
@@ -357,7 +357,7 @@ gh_api "GET" "/rate_limit" '.resources.core'
 RATELIMIT_REMAINING="$(jq -r '.remaining' <<< "$API_RESULT")"
 RATELIMIT_RESET="$(date -d "@$(jq -r '.reset' <<< "$API_RESULT")" +'%Y-%m-%d %H:%M:%S %Z')"
 
-if (( $RATELIMIT_REMAINING == 0 )); then
+if (( RATELIMIT_REMAINING == 0 )); then
     echo "GitHub API rate limit exceeded: You must wait till $RATELIMIT_RESET" >&2
     exit 1
 fi

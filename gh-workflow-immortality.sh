@@ -20,22 +20,22 @@ APP_NAME="$(basename "${BASH_SOURCE[0]}")"
 EXIT_CODE=0
 
 # check script dependencies
-if [ ! -x "$(which sed)" ]; then
+if [ ! -x "$(type -P sed)" ]; then
     echo "Missing required script dependency: sed" >&2
     exit 1
 fi
 
-if [ ! -x "$(which awk)" ]; then
+if [ ! -x "$(type -P awk)" ]; then
     echo "Missing required script dependency: awk" >&2
     exit 1
 fi
 
-if [ ! -x "$(which curl)" ]; then
+if [ ! -x "$(type -P curl)" ]; then
     echo "Missing required script dependency: curl" >&2
     exit 1
 fi
 
-if [ ! -x "$(which jq)" ]; then
+if [ ! -x "$(type -P jq)" ]; then
     echo "Missing required script dependency: jq" >&2
     exit 1
 fi

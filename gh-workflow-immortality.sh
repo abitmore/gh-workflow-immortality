@@ -175,12 +175,15 @@ gh_api() {
 
 # GitHub repo loader functions
 declare -a REPOS=()
+declare -A REPO_IDS=()
 
 load_repo() {
     gh_api "GET" "/repos/$1"
     [ -n "$API_RESULT" ] || return 1
 
-    REPOS+=( "$(jq -r '.full_name' <<< "$API_RESULT")" )
+    local REPO_NAME="$(jq -r '.full_name' <<< "$API_RESULT")"
+    REPOS+=( "$REPO_NAME" )
+    REPO_IDS["$REPO_NAME"]="$(jq -r '.id' <<< "$API_RESULT")"
 }
 
 load_repos() {
@@ -189,12 +192,17 @@ load_repos() {
 
     local __RESULT
     if [ -z "$FORKS" ]; then
-        __RESULT="$(jq -r '.[]|select((.fork or .archived or .disabled)|not).full_name' <<< "$API_RESULT")"
+        __RESULT="$(jq -r '.[]|select((.fork or .archived or .disabled)|not)|[.full_name, (.id|tostring)]|@tsv' <<< "$API_RESULT")"
     else
-        __RESULT="$(jq -r '.[]|select((.archived or .disabled)|not).full_name' <<< "$API_RESULT")"
+        __RESULT="$(jq -r '.[]|select((.archived or .disabled)|not)|[.full_name, (.id|tostring)]|@tsv' <<< "$API_RESULT")"
     fi
 
-    [ -z "$__RESULT" ] || readarray -t -O "${#REPOS[@]}" REPOS <<< "$__RESULT"
+    if [ -n "$__RESULT" ]; then
+        while IFS=$'\t' read -r REPO_NAME REPO_ID; do
+            REPOS+=( "$REPO_NAME" )
+            REPO_IDS["$REPO_NAME"]="$REPO_ID"
+        done <<< "$__RESULT"
+    fi
 }
 
 # GitHub workflow loader functions
@@ -224,6 +232,7 @@ GH_USERS=()
 GH_ORGS=()
 GH_REPOS=()
 DRY_RUN=
+IDS=
 VERBOSE=
 
 while [ $# -gt 0 ]; do
@@ -252,6 +261,7 @@ while [ $# -gt 0 ]; do
             echo
             echo "Application options:"
             echo "  --dry-run           don't actually enable any workflows"
+            echo "  --ids               print repository IDs instead of repository names"
             echo "  --verbose           print a list of issued GitHub API requests"
             echo "  --help              display this help and exit"
             echo "  --version           output version information and exit"
@@ -286,6 +296,11 @@ while [ $# -gt 0 ]; do
 
         "--dry-run")
             DRY_RUN="y"
+            shift
+            ;;
+
+        "--ids")
+            IDS="y"
             shift
             ;;
 
@@ -394,7 +409,12 @@ for REPO in "${REPOS[@]}"; do
     load_workflows "$REPO" \
         || { EXIT_CODE=1; true; }
 
-    echo "GitHub repository '$REPO': ${#WORKFLOWS_ALIVE[@]} alive and ${#WORKFLOWS_DEAD[@]} dead workflows"
+    REPO_PRINT="$REPO"
+    if [ -n "$IDS" ]; then
+        REPO_PRINT="${REPO_IDS[$REPO]}"
+    fi
+
+    echo "GitHub repository '$REPO_PRINT': ${#WORKFLOWS_ALIVE[@]} alive and ${#WORKFLOWS_DEAD[@]} dead workflows"
 
     # enable still active workflows
     for WORKFLOW in "${WORKFLOWS_ALIVE[@]}"; do

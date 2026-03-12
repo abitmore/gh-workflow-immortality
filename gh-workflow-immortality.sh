@@ -34,17 +34,17 @@ EXIT_CODE=0
 if [ -n "${REPOS_USERS:-}" ]; then
     while IFS= read -r REPOS_USER; do
         set -- --user "$REPOS_USER" "$@"
-    done < <(printf '%s\n' "$REPOS_USERS" | sed 's/^\s*//;s/\s*$//;/^$/d')
+    done < <(printf '%s\n' "$REPOS_USERS" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;/^$/d')
 fi
 if [ -n "${REPOS_ORGS:-}" ]; then
     while IFS= read -r REPOS_ORG; do
         set -- --org "$REPOS_ORG" "$@"
-    done < <(printf '%s\n' "$REPOS_ORGS" | sed 's/^\s*//;s/\s*$//;/^$/d')
+    done < <(printf '%s\n' "$REPOS_ORGS" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;/^$/d')
 fi
 if [ -n "${REPOS:-}" ]; then
     while IFS= read -r REPO; do
         set -- "$@" "$REPO"
-    done < <(printf '%s\n' "$REPOS" | sed 's/^\s*//;s/\s*$//;/^$/d')
+    done < <(printf '%s\n' "$REPOS" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;/^$/d')
 fi
 
 [ "${NO_REPO_NAMES:-false}" != "true" ] || set -- --no-repo-names "$@"
@@ -65,11 +65,11 @@ __curl() {
     local HEADERS_FINAL="$(awk '/^HTTP\/[0-9.]+ ([0-9]+)( .*)?$/{ headers="" } { headers=headers $0 "\n" } END{ print headers }' <<< "$HEADERS")"
     local BODY="$(tail -n "+$(($(wc -l <<< "$HEADERS")+2))" <<< "$RESPONSE")"
 
-    local STATUS_CODE="$(sed -ne '1{s#^HTTP/[0-9.]* \([0-9]*\)\( .*\)\?$#\1#p}' <<< "$HEADERS_FINAL")"
+    local STATUS_CODE="$(sed -ne '1s#^HTTP/[0-9.]* \([0-9]*\)\( .*\)\?$#\1#p' <<< "$HEADERS_FINAL")"
     if [ -z "$STATUS_CODE" ] || (( STATUS_CODE < 200 )) || (( STATUS_CODE >= 300 )); then
         [ $RETURN_CODE -ne 0 ] || RETURN_CODE=22
 
-        local STATUS_STRING="$(sed -ne '1{s#^HTTP/[0-9.]* \(.*\)$#\1#p}' <<< "$HEADERS_FINAL")"
+        local STATUS_STRING="$(sed -ne '1s#^HTTP/[0-9.]* \(.*\)$#\1#p' <<< "$HEADERS_FINAL")"
         echo "curl: (22) The requested URL '${@: -1}' returned error: $STATUS_STRING" >&2
         printf '%s\n' "$BODY" >&2
     fi

@@ -37,6 +37,10 @@ inputs:
     description: Loads the given repositories
     required: false
     default: ""
+  verbose:
+    description: Prints a list of issued GitHub API requests
+    required: false
+    default: false
 
 runs:
   using: composite
@@ -53,6 +57,7 @@ runs:
         REPOS_USERS: ${{ inputs.users }}
         REPOS_ORGS: ${{ inputs.orgs }}
         REPOS: ${{ inputs.repos }}
+        VERBOSE: ${{ inputs.verbose }}
       run: ${GITHUB_ACTION_PATH}/gh-workflow-immortality.sh
 
 branding:

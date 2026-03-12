@@ -56,6 +56,9 @@ fi
 if [ "${NO_REPO_NAMES:-false}" == "true" ]; then
     set -- --no-repo-names "$@"
 fi
+if [ "${VERBOSE:-false}" == "true" ]; then
+    set -- --verbose "$@"
+fi
 if [ -n "${REPOS_USERS:-}" ]; then
     while IFS= read -r REPOS_USER; do
         set -- --user "$REPOS_USER" "$@"
@@ -265,6 +268,7 @@ while [ $# -gt 0 ]; do
             echo "  COLLABORATOR_REPOS  passing 'true' enables '--collaborator'"
             echo "  MEMBER_REPOS        passing 'true' enables '--member'"
             echo "  NO_REPO_NAMES       passing 'true' enables '--no-repo-names'"
+            echo "  VERBOSE             passing 'true' enables '--verbose'"
             echo "  REPOS_USERS         line separated list of GitHub users for '--user'"
             echo "  REPOS_ORGS          line separated list of GitHub organizations for '--org'"
             echo "  REPOS               line separated list of 'REPOSITORY' arguments"

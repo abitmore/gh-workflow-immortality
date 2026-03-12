@@ -20,45 +20,17 @@ APP_NAME="$(basename "${BASH_SOURCE[0]}")"
 EXIT_CODE=0
 
 # check script dependencies
-if [ ! -x "$(type -P sed)" ]; then
-    echo "Missing required script dependency: sed" >&2
-    exit 1
-fi
-
-if [ ! -x "$(type -P awk)" ]; then
-    echo "Missing required script dependency: awk" >&2
-    exit 1
-fi
-
-if [ ! -x "$(type -P curl)" ]; then
-    echo "Missing required script dependency: curl" >&2
-    exit 1
-fi
-
-if [ ! -x "$(type -P jq)" ]; then
-    echo "Missing required script dependency: jq" >&2
-    exit 1
-fi
+[ -x "$(type -P sed)" ] || { echo "Missing required script dependency: sed" >&2; exit 1; }
+[ -x "$(type -P awk)" ] || { echo "Missing required script dependency: awk" >&2; exit 1; }
+[ -x "$(type -P curl)" ] || { echo "Missing required script dependency: curl" >&2; exit 1; }
+[ -x "$(type -P jq)" ] || { echo "Missing required script dependency: jq" >&2; exit 1; }
 
 # convert env variables to options
-if [ "${INCLUDE_FORKS:-false}" == "true" ]; then
-    set -- --forks "$@"
-fi
-if [ "${OWNER_REPOS:-false}" == "true" ]; then
-    set -- --owner "$@"
-fi
-if [ "${COLLABORATOR_REPOS:-false}" == "true" ]; then
-    set -- --collaborator "$@"
-fi
-if [ "${MEMBER_REPOS:-false}" == "true" ]; then
-    set -- --member "$@"
-fi
-if [ "${NO_REPO_NAMES:-false}" == "true" ]; then
-    set -- --no-repo-names "$@"
-fi
-if [ "${VERBOSE:-false}" == "true" ]; then
-    set -- --verbose "$@"
-fi
+[ "${INCLUDE_FORKS:-false}" != "true" ] || set -- --forks "$@"
+[ "${OWNER_REPOS:-false}" != "true" ] || set -- --owner "$@"
+[ "${COLLABORATOR_REPOS:-false}" != "true" ] || set -- --collaborator "$@"
+[ "${MEMBER_REPOS:-false}" != "true" ] || set -- --member "$@"
+
 if [ -n "${REPOS_USERS:-}" ]; then
     while IFS= read -r REPOS_USER; do
         set -- --user "$REPOS_USER" "$@"
@@ -74,6 +46,9 @@ if [ -n "${REPOS:-}" ]; then
         set -- "$@" "$REPO"
     done < <(printf '%s\n' "$REPOS" | sed 's/^\s*//;s/\s*$//;/^$/d')
 fi
+
+[ "${NO_REPO_NAMES:-false}" != "true" ] || set -- --no-repo-names "$@"
+[ "${VERBOSE:-false}" != "true" ] || set -- --verbose "$@"
 
 # helper functions
 print_usage() {
@@ -267,11 +242,11 @@ while [ $# -gt 0 ]; do
             echo "  OWNER_REPOS         passing 'true' enables '--owner'"
             echo "  COLLABORATOR_REPOS  passing 'true' enables '--collaborator'"
             echo "  MEMBER_REPOS        passing 'true' enables '--member'"
-            echo "  NO_REPO_NAMES       passing 'true' enables '--no-repo-names'"
-            echo "  VERBOSE             passing 'true' enables '--verbose'"
             echo "  REPOS_USERS         line separated list of GitHub users for '--user'"
             echo "  REPOS_ORGS          line separated list of GitHub organizations for '--org'"
             echo "  REPOS               line separated list of 'REPOSITORY' arguments"
+            echo "  NO_REPO_NAMES       passing 'true' enables '--no-repo-names'"
+            echo "  VERBOSE             passing 'true' enables '--verbose'"
             echo
             echo "You want to learn more about \`gh-workflow-immortality\`? Visit us on GitHub!"
             echo "Please don't hesitate to ask your questions, or to report any issues found."

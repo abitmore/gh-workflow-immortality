@@ -21,10 +21,6 @@ inputs:
     description: Loads all repositories of organizations of which the authenticated GitHub user is a member of
     required: false
     default: false
-  no_repo_names:
-    description: Prints repository IDs only instead of repository names plus IDs
-    required: false
-    default: false
   users:
     description: Loads all public repositories of the given GitHub users
     required: false
@@ -37,6 +33,10 @@ inputs:
     description: Loads the given repositories
     required: false
     default: ""
+  no_repo_names:
+    description: Suppresses printing repository names, but prints repository IDs only
+    required: false
+    default: false
   verbose:
     description: Prints a list of issued GitHub API requests
     required: false
@@ -53,10 +53,10 @@ runs:
         COLLABORATOR_REPOS: ${{ inputs.collaborator_repos }}
         MEMBER_REPOS: ${{ inputs.member_repos }}
         INCLUDE_FORKS: ${{ inputs.include_forks }}
-        NO_REPO_NAMES: ${{ inputs.no_repo_names }}
         REPOS_USERS: ${{ inputs.users }}
         REPOS_ORGS: ${{ inputs.orgs }}
         REPOS: ${{ inputs.repos }}
+        NO_REPO_NAMES: ${{ inputs.no_repo_names }}
         VERBOSE: ${{ inputs.verbose }}
       run: ${GITHUB_ACTION_PATH}/gh-workflow-immortality.sh
 

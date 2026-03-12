@@ -64,11 +64,11 @@ The GitHub action will accept the following options:
 | `owner_repos`        | Loads all repositories of the authenticated GitHub user (includes both public and private repositories); either `true` or `false` | `false` | No       |
 | `collaborator_repos` | Loads all repositories of which the authenticated GitHub user is a collaborator of; either `true` or `false`                      | `false` | No       |
 | `member_repos`       | Loads all repositories of organizations of which the authenticated GitHub user is a member of; either `true` or `false`           | `false` | No       |
-| `no_repo_names`      | Prints repository IDs only instead of repository names plus IDs; either `true` or `false`                                         | `false` | No       |
-| `verbose`            | Prints a list of issued GitHub API requests; either `true` or `false`                                                             | `false` | No       |
 | `users`              | Loads all public repositories of the given GitHub users; expects a line separated list of GitHub user names                       | `""`    | No       |
 | `orgs`               | Loads all repositories of the given GitHub organizations; expects a line separated list of GitHub organization names              | `""`    | No       |
 | `repos`              | Loads the given repositories; expects a line separated list of GitHub repositories, e.g. `PhrozenByte/gh-workflow-immortality`    | `""`    | No       |
+| `no_repo_names`      | Suppresses printing repository names, but prints repository IDs only; either `true` or `false`                                    | `false` | No       |
+| `verbose`            | Prints a list of issued GitHub API requests; either `true` or `false`                                                             | `false` | No       |
 
 Even though none of `owner_repos`, `collaborator_repos`, `member_repos`, `users`, `orgs`, and `repos` is mandatory, the options given must match at least one GitHub repository. Otherwise your GitHub workflow will fail.
 

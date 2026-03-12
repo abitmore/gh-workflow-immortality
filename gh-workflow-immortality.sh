@@ -81,6 +81,8 @@ __curl() {
 }
 
 # GitHub API helper functions
+declare RATELIMIT_REMAINING=
+declare RATELIMIT_RESET=
 declare API_RESULT=
 
 gh_api() {
@@ -105,7 +107,7 @@ gh_api() {
 
     # check GitHub API rate limit
     if [ "$ENDPOINT" != "rate_limit" ]; then
-        check_gh_ratelimit
+        check_gh_ratelimit || return 1
     fi
 
     # send HTTP request
@@ -135,7 +137,7 @@ gh_api() {
             fi
 
             # check GitHub API rate limit
-            check_gh_ratelimit
+            check_gh_ratelimit || return 1
 
             # send HTTP request for nth page
             PAGE_RESULT="$(__curl "${CURL_HEADERS[@]}" -X "$METHOD" \
@@ -392,12 +394,17 @@ fi
 for REPO_ID in "${!REPOS[@]}"; do
     REPO="${REPOS[$REPO_ID]}"
 
-    load_workflows "$REPO" \
-        || { EXIT_CODE=1; true; }
+    REPO_INFO="'$REPO' (ID: $REPO_ID)"
+    [ -z "$NO_REPO_NAMES" ] || REPO_INFO="with ID $REPO_ID"
 
-    REPO_IDENT="'$REPO' (ID: $REPO_ID)"
-    [ -z "$NO_REPO_NAMES" ] || REPO_IDENT="with ID $REPO_ID"
-    printf 'GitHub repository %s: %d alive and %d dead workflows\n' "$REPO_IDENT" "${#WORKFLOWS_ALIVE[@]}" "${#WORKFLOWS_DEAD[@]}"
+    # load workflows
+    if ! load_workflows "$REPO"; then
+        printf 'GitHub repository %s: failed to load workflows\n' "$REPO_INFO"
+        EXIT_CODE=1
+        continue
+    fi
+
+    printf 'GitHub repository %s: %d alive and %d dead workflows\n' "$REPO_INFO" "${#WORKFLOWS_ALIVE[@]}" "${#WORKFLOWS_DEAD[@]}"
 
     # enable still active workflows
     for WORKFLOW in "${WORKFLOWS_ALIVE[@]}"; do

@@ -55,6 +55,8 @@ This example GitHub workflow will run once a month on the first day of the month
 
 You can create an "immortality workflow" per repository, per user, per organization, or however you please, simply use the options below to specify the list of GitHub repositories whose workflows should be kept alive. Since your immortality workflow will use a scheduled trigger to run, you must make sure to include it in this list - otherwise GitHub might suspend it for inactivity. You can use the `${{ github.repository }}` variable to get the name of the repository including the immortality workflow.
 
+Please note that running GitHub Workflow Immortality in a public repository to keep workflows of private repositories alive will inevitably expose the names of those private repositories. If you consider the names of private repositories confidential, you should run GitHub Workflow Immortality in a private repository instead. Enabling the `no_repo_names` option also hides repository names. However, be aware that GitHub Workflow Immortality might still inadvertently expose the name of a private repository if an associated GitHub API request fails.
+
 The GitHub action will accept the following options:
 
 | Option               | Description                                                                                                                       | Default | Required |

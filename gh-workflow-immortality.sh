@@ -67,7 +67,7 @@ __curl() {
     local HEADERS_FINAL="$(awk '/^HTTP\/[0-9.]+ ([0-9]+)( .*)?$/{ headers="" } { headers=headers $0 "\n" } END{ print headers }' <<< "$HEADERS")"
     local BODY="$(tail -n "+$(($(wc -l <<< "$HEADERS")+2))" <<< "$RESPONSE")"
 
-    local STATUS_CODE="$(sed -ne '1s#^HTTP/[0-9.]* \([0-9]*\)\( .*\)\?$#\1#p' <<< "$HEADERS_FINAL")"
+    local STATUS_CODE="$(sed -ne '1s#^HTTP/[0-9.]* \([0-9]*\)\( .*\)\{0,1\}$#\1#p' <<< "$HEADERS_FINAL")"
     if [ -z "$STATUS_CODE" ] || (( STATUS_CODE < 200 )) || (( STATUS_CODE >= 300 )); then
         [ $RETURN_CODE -ne 0 ] || RETURN_CODE=22
 

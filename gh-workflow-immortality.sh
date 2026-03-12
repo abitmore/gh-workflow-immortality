@@ -20,6 +20,8 @@ APP_NAME="$(basename "${BASH_SOURCE[0]}")"
 EXIT_CODE=0
 
 # check script dependencies
+(( BASH_VERSINFO[0] > 4 )) || (( BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 2 )) \
+    || { echo "Missing required script dependency: Bash 4.2 or later"; exit 1; }
 [ -x "$(type -P sed)" ] || { echo "Missing required script dependency: sed" >&2; exit 1; }
 [ -x "$(type -P awk)" ] || { echo "Missing required script dependency: awk" >&2; exit 1; }
 [ -x "$(type -P curl)" ] || { echo "Missing required script dependency: curl" >&2; exit 1; }

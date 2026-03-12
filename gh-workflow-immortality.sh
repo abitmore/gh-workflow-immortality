@@ -177,15 +177,13 @@ gh_api() {
 }
 
 # GitHub repo loader functions
-declare -a REPOS=()
-declare -a REPO_IDS=()
+declare -A REPOS=()
 
 load_repo() {
     gh_api "GET" "/repos/$1"
     [ -n "$API_RESULT" ] || return 1
 
-    REPOS+=( "$(jq -r '.full_name' <<< "$API_RESULT")" )
-    REPO_IDS+=( "$(jq -r '.id' <<< "$API_RESULT")" )
+    REPOS["$(jq -r '.id' <<< "$API_RESULT")"]="$(jq -r '.full_name' <<< "$API_RESULT")"
 }
 
 load_repos() {
@@ -195,8 +193,7 @@ load_repos() {
     local __RESULT
     while IFS= read -r __RESULT; do
         [ -n "$FORKS" ] || jq -e '.fork|not' <<< "$__RESULT" > /dev/null || continue
-        REPOS+=( "$(jq -r '.full_name' <<< "$__RESULT")" )
-        REPO_IDS+=( "$(jq -r '.id' <<< "$__RESULT")" )
+        REPOS["$(jq -r '.id' <<< "$__RESULT")"]="$(jq -r '.full_name' <<< "$__RESULT")"
     done < <(jq -c '.[]|select((.archived or .disabled)|not)' <<< "$API_RESULT")
 }
 
@@ -393,37 +390,20 @@ if [ ${#REPOS[@]} -eq 0 ]; then
     exit 1
 fi
 
-# remove duplicate repositories
-REPOS_UNIQUE=()
-REPO_IDS_UNIQUE=()
-while IFS=$'\t' read -r REPO REPO_ID; do
-    REPOS_UNIQUE+=( "$REPO" )
-    REPO_IDS_UNIQUE+=( "$REPO_ID" )
-done < <(
-    for REPO_INDEX in "${!REPOS[@]}"; do
-        printf '%s\t%s\n' "${REPOS[$REPO_INDEX]}" "${REPO_IDS[$REPO_INDEX]}"
-    done | sort -u
-)
-REPOS=( "${REPOS_UNIQUE[@]}" )
-REPO_IDS=( "${REPO_IDS_UNIQUE[@]}" )
-
 # enable all workflows of the requested repos
 if [ -n "$DRY_RUN" ]; then
     echo "Warning: This is a dry run, no GitHub workflows will be enabled..." >&2
 fi
 
-for REPO_INDEX in "${!REPOS[@]}"; do
-    REPO="${REPOS[$REPO_INDEX]}"
-    REPO_ID="${REPO_IDS[$REPO_INDEX]}"
+for REPO_ID in "${!REPOS[@]}"; do
+    REPO="${REPOS[$REPO_ID]}"
 
     load_workflows "$REPO" \
         || { EXIT_CODE=1; true; }
 
-    if [ -n "$NO_REPO_NAMES" ]; then
-        echo "GitHub repository with ID $REPO_ID: ${#WORKFLOWS_ALIVE[@]} alive and ${#WORKFLOWS_DEAD[@]} dead workflows"
-    else
-        echo "GitHub repository '$REPO' (ID: $REPO_ID): ${#WORKFLOWS_ALIVE[@]} alive and ${#WORKFLOWS_DEAD[@]} dead workflows"
-    fi
+    REPO_IDENT="'$REPO' (ID: $REPO_ID)"
+    [ -z "$NO_REPO_NAMES" ] || REPO_IDENT="with ID $REPO_ID"
+    printf 'GitHub repository %s: %d alive and %d dead workflows\n' "$REPO_IDENT" "${#WORKFLOWS_ALIVE[@]}" "${#WORKFLOWS_DEAD[@]}"
 
     # enable still active workflows
     for WORKFLOW in "${WORKFLOWS_ALIVE[@]}"; do

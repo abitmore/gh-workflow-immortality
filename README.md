@@ -72,6 +72,8 @@ The GitHub action will accept the following options:
 
 Even though none of `owner_repos`, `collaborator_repos`, `member_repos`, `users`, `orgs`, and `repos` is mandatory, the options given must match at least one GitHub repository. Otherwise your GitHub workflow will fail.
 
+The options `no_repo_names` and `verbose` are mutually exclusive. The GitHub workflow fails when enabling both.
+
 ### Run script manually
 
 The GitHub action is no more than a wrapper for the `gh-workflow-immortality.sh` script. `gh-workflow-immortality.sh` is just an ordinary Bash script you can run locally on your machine. Simply download the script and check its help:

@@ -336,6 +336,11 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+if [ "$NO_REPO_NAMES" == "y" ] && [ "$VERBOSE" == "y" ]; then
+    echo "Options '--no-repo-names' and '--verbose' are mutually exclusive" >&2
+    exit 1
+fi
+
 # check current GitHub API rate limit
 gh_api "GET" "/rate_limit" '.resources.core'
 RATELIMIT_REMAINING="$(jq -r '.remaining' <<< "$API_RESULT")"

@@ -1,6 +1,16 @@
 Changelog of GitHub Workflow Immortality
 ========================================
 
+### Version 1.2.0
+Released: 2026-03-12
+
+* [[#5]](https://github.com/PhrozenByte/gh-workflow-immortality/pull/5) Add `--no-repo-names` CLI option resp. `no_repo_names` GitHub action option to suppress printing repository names; additionally always print repository IDs [[0cbc7f6]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/0cbc7f6) [[cc0c197]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/cc0c197) [[afe1233]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/afe1233) [[8c1ebe0]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/8c1ebe0)
+* Add `verbose` GitHub action option to enable the `--verbose` CLI option [[1de4712]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/1de4712)
+* Improve compatibility with BSD utilities [[e07d0f0]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/e07d0f0) [[9e1a6d6]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/9e1a6d6) [[66125f7]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/66125f7) [[e108627]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/e108627) [[697d8a5]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/697d8a5)
+* Fix handling of multi-page API responses [[1a4c561]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/1a4c561)
+* Fix GitHub API rate limit checks [[f39c061]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/f39c061) [[773b006]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/773b006)
+* Various small improvements [[a8def4a]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/a8def4a) [[e1f3c71]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/e1f3c71) [[b694373]](https://github.com/PhrozenByte/gh-workflow-immortality/commit/b694373)
+
 ### Version 1.1.3
 Released: 2025-08-24
 

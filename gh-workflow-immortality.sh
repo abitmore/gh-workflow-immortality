@@ -344,7 +344,7 @@ fi
 # check current GitHub API rate limit
 gh_api "GET" "/rate_limit" '.resources.core'
 RATELIMIT_REMAINING="$(jq -r '.remaining' <<< "$API_RESULT")"
-RATELIMIT_RESET="$(date -d "@$(jq -r '.reset' <<< "$API_RESULT")" +'%Y-%m-%d %H:%M:%S %Z')"
+RATELIMIT_RESET="$(printf '%(%Y-%m-%d %H:%M:%S %Z)T\n' "$(jq -r '.reset' <<< "$API_RESULT")")"
 
 if (( RATELIMIT_REMAINING == 0 )); then
     echo "GitHub API rate limit exceeded: You must wait till $RATELIMIT_RESET" >&2

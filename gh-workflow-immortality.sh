@@ -78,7 +78,7 @@ __curl() {
     return $RETURN_CODE
 }
 
-# GitHub API helper function
+# GitHub API helper functions
 declare API_RESULT=
 
 gh_api() {
@@ -101,14 +101,9 @@ gh_api() {
         echo + "$METHOD https://api.github.com/$ENDPOINT" >&2
     fi
 
-    # check rate limit
+    # check GitHub API rate limit
     if [ "$ENDPOINT" != "rate_limit" ]; then
-        if (( RATELIMIT_REMAINING == 0 )); then
-            echo "curl: (67) GitHub API rate limit exceeded: You must wait till $RATELIMIT_RESET" >&2
-            return 67
-        fi
-
-        ((RATELIMIT_REMAINING--))
+        check_gh_ratelimit
     fi
 
     # send HTTP request
@@ -132,11 +127,15 @@ gh_api() {
         local PAGE PAGE_RESULT
 
         for (( PAGE=2 ; PAGE <= PAGE_COUNT ; PAGE++ )); do
-            # send HTTP request for nth page
+            # print API call in verbose mode
             if [ "$VERBOSE" == "y" ]; then
                 echo + "$METHOD https://api.github.com/$ENDPOINT$PAGE_PARAM$PAGE" >&2
             fi
 
+            # check GitHub API rate limit
+            check_gh_ratelimit
+
+            # send HTTP request for nth page
             PAGE_RESULT="$(__curl "${CURL_HEADERS[@]}" -X "$METHOD" \
                 "https://api.github.com/$ENDPOINT$PAGE_PARAM$PAGE")"
             [ $? -eq 0 ] || return 1
@@ -152,6 +151,15 @@ gh_api() {
 
     # return result
     API_RESULT="$RESULT"
+}
+
+check_gh_ratelimit() {
+    if (( RATELIMIT_REMAINING == 0 )); then
+        echo "curl: (67) GitHub API rate limit exceeded: You must wait till $RATELIMIT_RESET" >&2
+        return 67
+    fi
+
+    ((RATELIMIT_REMAINING--))
 }
 
 # GitHub repo loader functions

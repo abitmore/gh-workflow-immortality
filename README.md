@@ -118,11 +118,11 @@ Environment variables:
   OWNER_REPOS         passing 'true' enables '--owner'
   COLLABORATOR_REPOS  passing 'true' enables '--collaborator'
   MEMBER_REPOS        passing 'true' enables '--member'
-  NO_REPO_NAMES       passing 'true' enables '--no-repo-names'
-  VERBOSE             passing 'true' enables '--verbose'
   REPOS_USERS         line separated list of GitHub users for '--user'
   REPOS_ORGS          line separated list of GitHub organizations for '--org'
   REPOS               line separated list of 'REPOSITORY' arguments
+  NO_REPO_NAMES       passing 'true' enables '--no-repo-names'
+  VERBOSE             passing 'true' enables '--verbose'
 
 You want to learn more about `gh-workflow-immortality`? Visit us on GitHub!
 Please don't hesitate to ask your questions, or to report any issues found.

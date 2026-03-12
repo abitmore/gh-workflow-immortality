@@ -53,6 +53,9 @@ fi
 if [ "${MEMBER_REPOS:-false}" == "true" ]; then
     set -- --member "$@"
 fi
+if [ "${NO_REPO_NAMES:-false}" == "true" ]; then
+    set -- --no-repo-names "$@"
+fi
 if [ -n "${REPOS_USERS:-}" ]; then
     while IFS= read -r REPOS_USER; do
         set -- --user "$REPOS_USER" "$@"
@@ -175,15 +178,14 @@ gh_api() {
 
 # GitHub repo loader functions
 declare -a REPOS=()
-declare -A REPO_IDS=()
+declare -a REPO_IDS=()
 
 load_repo() {
     gh_api "GET" "/repos/$1"
     [ -n "$API_RESULT" ] || return 1
 
-    local REPO_NAME="$(jq -r '.full_name' <<< "$API_RESULT")"
-    REPOS+=( "$REPO_NAME" )
-    REPO_IDS["$REPO_NAME"]="$(jq -r '.id' <<< "$API_RESULT")"
+    REPOS+=( "$(jq -r '.full_name' <<< "$API_RESULT")" )
+    REPO_IDS+=( "$(jq -r '.id' <<< "$API_RESULT")" )
 }
 
 load_repos() {
@@ -191,18 +193,11 @@ load_repos() {
     [ -n "$API_RESULT" ] || return 1
 
     local __RESULT
-    if [ -z "$FORKS" ]; then
-        __RESULT="$(jq -r '.[]|select((.fork or .archived or .disabled)|not)|[.full_name, (.id|tostring)]|@tsv' <<< "$API_RESULT")"
-    else
-        __RESULT="$(jq -r '.[]|select((.archived or .disabled)|not)|[.full_name, (.id|tostring)]|@tsv' <<< "$API_RESULT")"
-    fi
-
-    if [ -n "$__RESULT" ]; then
-        while IFS=$'\t' read -r REPO_NAME REPO_ID; do
-            REPOS+=( "$REPO_NAME" )
-            REPO_IDS["$REPO_NAME"]="$REPO_ID"
-        done <<< "$__RESULT"
-    fi
+    while IFS= read -r __RESULT; do
+        [ -n "$FORKS" ] || jq -e '.fork|not' <<< "$__RESULT" > /dev/null || continue
+        REPOS+=( "$(jq -r '.full_name' <<< "$__RESULT")" )
+        REPO_IDS+=( "$(jq -r '.id' <<< "$__RESULT")" )
+    done < <(jq -c '.[]|select((.archived or .disabled)|not)' <<< "$API_RESULT")
 }
 
 # GitHub workflow loader functions
@@ -232,7 +227,7 @@ GH_USERS=()
 GH_ORGS=()
 GH_REPOS=()
 DRY_RUN=
-IDS=
+NO_REPO_NAMES=
 VERBOSE=
 
 while [ $# -gt 0 ]; do
@@ -261,7 +256,7 @@ while [ $# -gt 0 ]; do
             echo
             echo "Application options:"
             echo "  --dry-run           don't actually enable any workflows"
-            echo "  --ids               print repository IDs instead of repository names"
+            echo "  --no-repo-names     don't print repository names, but repository IDs only"
             echo "  --verbose           print a list of issued GitHub API requests"
             echo "  --help              display this help and exit"
             echo "  --version           output version information and exit"
@@ -272,6 +267,7 @@ while [ $# -gt 0 ]; do
             echo "  OWNER_REPOS         passing 'true' enables '--owner'"
             echo "  COLLABORATOR_REPOS  passing 'true' enables '--collaborator'"
             echo "  MEMBER_REPOS        passing 'true' enables '--member'"
+            echo "  NO_REPO_NAMES       passing 'true' enables '--no-repo-names'"
             echo "  REPOS_USERS         line separated list of GitHub users for '--user'"
             echo "  REPOS_ORGS          line separated list of GitHub organizations for '--org'"
             echo "  REPOS               line separated list of 'REPOSITORY' arguments"
@@ -299,8 +295,8 @@ while [ $# -gt 0 ]; do
             shift
             ;;
 
-        "--ids")
-            IDS="y"
+        "--no-repo-names")
+            NO_REPO_NAMES="y"
             shift
             ;;
 
@@ -398,23 +394,36 @@ if [ ${#REPOS[@]} -eq 0 ]; then
 fi
 
 # remove duplicate repositories
-readarray -t REPOS < <(printf '%s\n' "${REPOS[@]}" | sort -u)
+REPOS_UNIQUE=()
+REPO_IDS_UNIQUE=()
+while IFS=$'\t' read -r REPO REPO_ID; do
+    REPOS_UNIQUE+=( "$REPO" )
+    REPO_IDS_UNIQUE+=( "$REPO_ID" )
+done < <(
+    for REPO_INDEX in "${!REPOS[@]}"; do
+        printf '%s\t%s\n' "${REPOS[$REPO_INDEX]}" "${REPO_IDS[$REPO_INDEX]}"
+    done | sort -u
+)
+REPOS=( "${REPOS_UNIQUE[@]}" )
+REPO_IDS=( "${REPO_IDS_UNIQUE[@]}" )
 
 # enable all workflows of the requested repos
 if [ -n "$DRY_RUN" ]; then
     echo "Warning: This is a dry run, no GitHub workflows will be enabled..." >&2
 fi
 
-for REPO in "${REPOS[@]}"; do
+for REPO_INDEX in "${!REPOS[@]}"; do
+    REPO="${REPOS[$REPO_INDEX]}"
+    REPO_ID="${REPO_IDS[$REPO_INDEX]}"
+
     load_workflows "$REPO" \
         || { EXIT_CODE=1; true; }
 
-    REPO_PRINT="$REPO"
-    if [ -n "$IDS" ]; then
-        REPO_PRINT="${REPO_IDS[$REPO]}"
+    if [ -n "$NO_REPO_NAMES" ]; then
+        echo "GitHub repository with ID $REPO_ID: ${#WORKFLOWS_ALIVE[@]} alive and ${#WORKFLOWS_DEAD[@]} dead workflows"
+    else
+        echo "GitHub repository '$REPO' (ID: $REPO_ID): ${#WORKFLOWS_ALIVE[@]} alive and ${#WORKFLOWS_DEAD[@]} dead workflows"
     fi
-
-    echo "GitHub repository '$REPO_PRINT': ${#WORKFLOWS_ALIVE[@]} alive and ${#WORKFLOWS_DEAD[@]} dead workflows"
 
     # enable still active workflows
     for WORKFLOW in "${WORKFLOWS_ALIVE[@]}"; do

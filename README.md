@@ -64,6 +64,7 @@ The GitHub action will accept the following options:
 | `owner_repos`        | Loads all repositories of the authenticated GitHub user (includes both public and private repositories); either `true` or `false` | `false` | No       |
 | `collaborator_repos` | Loads all repositories of which the authenticated GitHub user is a collaborator of; either `true` or `false`                      | `false` | No       |
 | `member_repos`       | Loads all repositories of organizations of which the authenticated GitHub user is a member of; either `true` or `false`           | `false` | No       |
+| `no_repo_names`      | Prints repository IDs only instead of repository names plus IDs; either `true` or `false`                                         | `false` | No       |
 | `users`              | Loads all public repositories of the given GitHub users; expects a line separated list of GitHub user names                       | `""`    | No       |
 | `orgs`               | Loads all repositories of the given GitHub organizations; expects a line separated list of GitHub organization names              | `""`    | No       |
 | `repos`              | Loads the given repositories; expects a line separated list of GitHub repositories, e.g. `PhrozenByte/gh-workflow-immortality`    | `""`    | No       |
@@ -101,7 +102,7 @@ Repository options:
 
 Application options:
   --dry-run           don't actually enable any workflows
-  --ids               print repository IDs instead of repository names
+  --no-repo-names     don't print repository names, but repository IDs only
   --verbose           print a list of issued GitHub API requests
   --help              display this help and exit
   --version           output version information and exit
@@ -112,6 +113,7 @@ Environment variables:
   OWNER_REPOS         passing 'true' enables '--owner'
   COLLABORATOR_REPOS  passing 'true' enables '--collaborator'
   MEMBER_REPOS        passing 'true' enables '--member'
+  NO_REPO_NAMES       passing 'true' enables '--no-repo-names'
   REPOS_USERS         line separated list of GitHub users for '--user'
   REPOS_ORGS          line separated list of GitHub organizations for '--org'
   REPOS               line separated list of 'REPOSITORY' arguments
@@ -126,5 +128,5 @@ For the script to work you must set the `GITHUB_TOKEN` environment variable - ot
 ```console
 $ export GITHUB_TOKEN=my_personal_access_token
 $ ./gh-workflow-immortality.sh --owner
-GitHub repository 'PhrozenByte/gh-workflow-immortality': 0 alive and 0 dead workflows
+GitHub repository 'PhrozenByte/gh-workflow-immortality' (ID: 590682313): 0 alive and 0 dead workflows
 ```
